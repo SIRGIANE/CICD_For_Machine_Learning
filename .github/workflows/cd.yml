@@ -20,10 +20,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade --force-reinstall huggingface_hub
-          echo "$pythonLocation/bin" >> $GITHUB_PATH
-          which huggingface-cli || true
-          huggingface-cli --version || (echo "CLI missing" && exit 1)
-      - name: Deploy to Hugging Face
+          # Show environment diagnostics
+          python -c "import sys, os, shutil; print('Executable:', sys.executable); print('PATH=', os.environ.get('PATH')); print('which huggingface-cli:', shutil.which('huggingface-cli'))"
+          # Try script; ignore failure (fallback will be python -m)
+          huggingface-cli --version || echo "huggingface-cli entrypoint not found; will use python -m huggingface_hub.cli"
+      - name: Deploy to Hugging Face (fallback safe)
         env:
           HF: ${{ secrets.HF }}
-        run: make deploy HF=$HF
+        run: |
+          # Use module invocation to avoid reliance on console script
+          make deploy HF=$HF HF_CMD="python -m huggingface_hub.cli"
