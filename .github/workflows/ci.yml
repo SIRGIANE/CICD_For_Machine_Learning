@@ -46,7 +46,7 @@ jobs:
       
       - name: Evaluate model and generate report
         env:
-          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_TOKEN: ${{ secrets.CML_TOKEN }}
         run: make eval
         
       - name: Update Branch
