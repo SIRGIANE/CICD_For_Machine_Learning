@@ -44,7 +44,8 @@ hf-login:
 	else \
 		echo "Remote update branch missing - using current branch"; \
 	fi
-	pip install --upgrade huggingface_hub
+	@if [ -z "$(HF)" ]; then echo "Missing HF token"; exit 1; fi
+	pip install --upgrade 'huggingface_hub[cli]'
 	$(HF_CMD) login --token $(HF) --add-to-git-credential
 
 # Ensure Space exists (idempotent)
