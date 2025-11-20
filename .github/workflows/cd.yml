@@ -16,15 +16,16 @@ jobs:
         with:
           python-version: '3.9'
           cache: 'pip'
-      - name: Install huggingface_hub & CLI
+      - name: Install Hugging Face CLI
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade --force-reinstall huggingface_hub
-          python -c "import sys, os, shutil; print('Executable:', sys.executable); print('which huggingface-cli:', shutil.which('huggingface-cli'))"
-          huggingface-cli --version || echo "huggingface-cli entrypoint not found; will use python -m huggingface_hub.cli"
-      - name: Deploy to Hugging Face (fallback safe)
+          python -m pip install --upgrade 'huggingface_hub[cli]'
+          echo "$pythonLocation/bin" >> $GITHUB_PATH
+          which huggingface-cli || (echo "huggingface-cli not found" && ls -1 "$pythonLocation/bin" | grep huggingface || true)
+          huggingface-cli --version
+      - name: Deploy to Hugging Face
         env:
           HF: ${{ secrets.HR || secrets.HF }}
         run: |
           if [ -z "$HF" ]; then echo "Missing HF token secret (HR or HF)"; exit 1; fi
-          make deploy HF=$HF HF_CMD="python -m huggingface_hub.cli"
+          make deploy HF=$HF
