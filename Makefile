@@ -35,7 +35,7 @@ update-branch:
 	fi
 
 HF_USER ?= wissal098
-HF_SPACE ?= Drug_Classification
+HF_SPACE ?= CI_CD_TUTO
 SPACE_REPO := $(HF_USER)/$(HF_SPACE)
 
 deploy:
