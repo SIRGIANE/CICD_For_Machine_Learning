@@ -20,13 +20,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade --force-reinstall huggingface_hub
-          # Show environment diagnostics
-          python -c "import sys, os, shutil; print('Executable:', sys.executable); print('PATH=', os.environ.get('PATH')); print('which huggingface-cli:', shutil.which('huggingface-cli'))"
-          # Try script; ignore failure (fallback will be python -m)
+          python -c "import sys, os, shutil; print('Executable:', sys.executable); print('which huggingface-cli:', shutil.which('huggingface-cli'))"
           huggingface-cli --version || echo "huggingface-cli entrypoint not found; will use python -m huggingface_hub.cli"
       - name: Deploy to Hugging Face (fallback safe)
         env:
-          HF: ${{ secrets.HF }}
+          HF: ${{ secrets.HR || secrets.HF }}
         run: |
-          # Use module invocation to avoid reliance on console script
+          if [ -z "$HF" ]; then echo "Missing HF token secret (HR or HF)"; exit 1; fi
           make deploy HF=$HF HF_CMD="python -m huggingface_hub.cli"
