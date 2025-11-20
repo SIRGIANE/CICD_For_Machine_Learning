@@ -30,9 +30,15 @@ update-branch:
 		git push origin HEAD:update || git push --set-upstream origin update; \
 	fi
 
+# Robust Hugging Face login: handle missing 'update' branch
 hf-login:
-	git pull origin update
-	git switch update
+	git fetch origin
+	@if git ls-remote --exit-code origin update; then \
+		echo "Remote update branch exists"; \
+		git switch update || git switch -c update --track origin/update; \
+	else \
+		echo "Remote update branch missing - using current branch"; \
+	fi
 	pip install -U "huggingface_hub[cli]"
 	huggingface-cli login --token $(HF) --add-to-git-credential
 
