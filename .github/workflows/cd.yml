@@ -19,8 +19,13 @@ jobs:
           cache: 'pip'
       - name: Install dependencies
         run: make install
+      # Ensure huggingface-cli installed and on PATH
       - name: Install Hugging Face CLI
-        run: pip install --upgrade "huggingface_hub[cli]"
+        run: |
+          python -m pip install --upgrade huggingface_hub
+          echo "$(python -m site --user-base)/bin" >> $GITHUB_PATH
+          which huggingface-cli || echo "huggingface-cli not found before PATH update"
+          huggingface-cli --version
       - name: Deployment To Hugging Face
         env:
           HF: ${{ secrets.HF }}
