@@ -17,9 +17,14 @@ eval:
 	
 	cml comment create report.md
 		
+USER_NAME ?= 
+USER_EMAIL ?= 
+
 update-branch:
-	git config --global user.name $(USER_NAME)
-	git config --global user.email $(USER_EMAIL)
+	@if [ -z "$(USER_NAME)" ]; then echo "Error: USER_NAME is required. Usage: make update-branch USER_NAME='Your Name' USER_EMAIL='you@example.com'"; exit 1; fi
+	@if [ -z "$(USER_EMAIL)" ]; then echo "Error: USER_EMAIL is required. Usage: make update-branch USER_NAME='Your Name' USER_EMAIL='you@example.com'"; exit 1; fi
+	git config --global user.name "$(USER_NAME)"
+	git config --global user.email "$(USER_EMAIL)"
 	git commit -am "Update with new results"
 	git push --force origin HEAD:update
 
