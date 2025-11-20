@@ -42,9 +42,16 @@ hf-login:
 	pip install -U "huggingface_hub[cli]"
 	huggingface-cli login --token $(HF) --add-to-git-credential
 
+HF_USER ?= wissal098
+HF_SPACE ?= Drug_Classification
+SPACE_REPO := $(HF_USER)/$(HF_SPACE)
+
 push-hub:
-	huggingface-cli upload kingabzpro/Drug-Classification ./App --repo-type=space --commit-message="Sync App files"
-	huggingface-cli upload kingabzpro/Drug-Classification ./Model /Model --repo-type=space --commit-message="Sync Model"
-	huggingface-cli upload kingabzpro/Drug-Classification ./Results /Metrics --repo-type=space --commit-message="Sync Model"
+	# Upload app (includes requirements.txt for Space environment)
+	huggingface-cli upload $(SPACE_REPO) ./App --repo-type=space --commit-message="Sync App files"
+	# Upload model artifacts
+	huggingface-cli upload $(SPACE_REPO) ./Model /Model --repo-type=space --commit-message="Sync Model"
+	# Upload results/metrics
+	huggingface-cli upload $(SPACE_REPO) ./Results /Metrics --repo-type=space --commit-message="Sync Metrics"
 
 deploy: hf-login push-hub
