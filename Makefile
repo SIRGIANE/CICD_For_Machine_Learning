@@ -33,7 +33,7 @@ update-branch:
 HF_USER ?= wissal098
 HF_SPACE ?= Drug_Classification
 SPACE_REPO := $(HF_USER)/$(HF_SPACE)
-HF_CMD ?= python -m huggingface_hub
+HF_CMD ?= huggingface-cli
 
 # Robust Hugging Face login: handle missing 'update' branch
 hf-login:
