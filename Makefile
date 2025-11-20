@@ -33,7 +33,7 @@ update-branch:
 HF_USER ?= wissal098
 HF_SPACE ?= Drug_Classification
 SPACE_REPO := $(HF_USER)/$(HF_SPACE)
-HF_CMD ?= huggingface-cli
+HF_CMD ?= python -m huggingface_hub
 
 # Robust Hugging Face login: handle missing 'update' branch
 hf-login:
@@ -44,24 +44,15 @@ hf-login:
 	else \
 		echo "Remote update branch missing - using current branch"; \
 	fi
-	@if [ -z "$(HF)" ]; then echo "Missing HF token"; exit 1; fi
-	pip install --upgrade 'huggingface_hub[cli]'
+	pip install --upgrade huggingface_hub
 	$(HF_CMD) login --token $(HF) --add-to-git-credential
 
-# Ensure Space exists (idempotent)
-create-space:
-	$(HF_CMD) repo create $(SPACE_REPO) --type=space --yes || echo "Space already exists"
-
 push-hub:
-	# Upload Gradio app entrypoint as app.py at repo root
-	$(HF_CMD) upload $(SPACE_REPO) ./App/drug_app.py /app.py --repo-type=space --commit-message="Update app.py"
-	# Upload Space runtime requirements
-	$(HF_CMD) upload $(SPACE_REPO) ./App/requirements.txt /requirements.txt --repo-type=space --commit-message="Update requirements"
-	# Optional README for Space
-	$(HF_CMD) upload $(SPACE_REPO) ./App/README /README.md --repo-type=space --commit-message="Update README"
-	# Upload model artifacts into /Model
+	# Upload app (includes requirements.txt for Space environment)
+	$(HF_CMD) upload $(SPACE_REPO) ./App --repo-type=space --commit-message="Sync App files"
+	# Upload model artifacts
 	$(HF_CMD) upload $(SPACE_REPO) ./Model /Model --repo-type=space --commit-message="Sync Model"
-	# Upload results/metrics into /Results
-	$(HF_CMD) upload $(SPACE_REPO) ./Results /Results --repo-type=space --commit-message="Sync Results"
+	# Upload results/metrics
+	$(HF_CMD) upload $(SPACE_REPO) ./Results /Metrics --repo-type=space --commit-message="Sync Metrics"
 
-deploy: hf-login create-space push-hub
+deploy: hf-login push-hub
