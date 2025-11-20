@@ -47,6 +47,10 @@ hf-login:
 	pip install --upgrade huggingface_hub
 	$(HF_CMD) login --token $(HF) --add-to-git-credential
 
+# Ensure Space exists (idempotent)
+create-space:
+	$(HF_CMD) repo create $(SPACE_REPO) --type=space --yes || echo "Space already exists"
+
 push-hub:
 	# Upload Gradio app entrypoint as app.py at repo root
 	$(HF_CMD) upload $(SPACE_REPO) ./App/drug_app.py /app.py --repo-type=space --commit-message="Update app.py"
@@ -59,4 +63,4 @@ push-hub:
 	# Upload results/metrics into /Results
 	$(HF_CMD) upload $(SPACE_REPO) ./Results /Results --repo-type=space --commit-message="Sync Results"
 
-deploy: hf-login push-hub
+deploy: hf-login create-space push-hub
