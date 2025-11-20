@@ -1,25 +1,44 @@
-name: Continuous Integration
+name: ML Pipeline CI
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
-  
-permissions: write-all
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
-  build:
+  cml-run:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
     steps:
-      - uses: actions/checkout@v3
-      - uses: iterative/setup-cml@v2
-      - name: Install Packages
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Setup CML
+        uses: iterative/setup-cml@v2
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      
+      - name: Install dependencies
         run: make install
-      - name: Format
+      
+      - name: Code formatting check
         run: make format
-      - name: Train
+      
+      - name: Train model
         run: make train
-      - name: Evaluation
+      
+      - name: Evaluate model and generate report
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: make eval
