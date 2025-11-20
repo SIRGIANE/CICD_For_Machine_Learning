@@ -33,26 +33,30 @@ update-branch:
 HF_USER ?= wissal098
 HF_SPACE ?= Drug_Classification
 SPACE_REPO := $(HF_USER)/$(HF_SPACE)
-HF_CMD ?= python -m huggingface_hub
 
-# Robust Hugging Face login: handle missing 'update' branch
-hf-login:
-	git fetch origin
-	@if git ls-remote --exit-code origin update; then \
-		echo "Remote update branch exists"; \
-		git switch update || git switch -c update --track origin/update; \
-	else \
-		echo "Remote update branch missing - using current branch"; \
-	fi
-	pip install --upgrade huggingface_hub
-	$(HF_CMD) login --token $(HF) --add-to-git-credential
-
-push-hub:
-	# Upload app (includes requirements.txt for Space environment)
-	$(HF_CMD) upload $(SPACE_REPO) ./App --repo-type=space --commit-message="Sync App files"
-	# Upload model artifacts
-	$(HF_CMD) upload $(SPACE_REPO) ./Model /Model --repo-type=space --commit-message="Sync Model"
-	# Upload results/metrics
-	$(HF_CMD) upload $(SPACE_REPO) ./Results /Metrics --repo-type=space --commit-message="Sync Metrics"
-
-deploy: hf-login push-hub
+deploy:
+	@if [ -z "$(HF)" ]; then echo "Error: HF token missing"; exit 1; fi
+	@echo "Installing huggingface_hub..."
+	@pip install --upgrade huggingface_hub
+	@echo "Deploying to Hugging Face Space: $(SPACE_REPO)"
+	@python -c '\
+import os; \
+from huggingface_hub import HfApi; \
+from pathlib import Path; \
+api = HfApi(token=os.environ["HF"]); \
+repo_id = "$(SPACE_REPO)"; \
+print(f"Creating Space: {repo_id}"); \
+api.create_repo(repo_id=repo_id, repo_type="space", exist_ok=True); \
+print("Uploading app.py..."); \
+api.upload_file(path_or_fileobj="App/drug_app.py", path_in_repo="app.py", repo_id=repo_id, repo_type="space", commit_message="Update app"); \
+print("Uploading requirements.txt..."); \
+api.upload_file(path_or_fileobj="App/requirements.txt", path_in_repo="requirements.txt", repo_id=repo_id, repo_type="space", commit_message="Update requirements"); \
+readme = Path("App/README"); \
+(api.upload_file(path_or_fileobj="App/README", path_in_repo="README.md", repo_id=repo_id, repo_type="space", commit_message="Update README") if readme.exists() else None); \
+print("Uploading Model folder..."); \
+api.upload_folder(folder_path="Model", path_in_repo="Model", repo_id=repo_id, repo_type="space", commit_message="Update model"); \
+print("Uploading Results folder..."); \
+api.upload_folder(folder_path="Results", path_in_repo="Results", repo_id=repo_id, repo_type="space", commit_message="Update results"); \
+print("✅ Deployment complete!"); \
+print(f"🚀 https://huggingface.co/spaces/{repo_id}"); \
+'
