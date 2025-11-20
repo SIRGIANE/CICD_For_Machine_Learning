@@ -48,11 +48,15 @@ hf-login:
 	$(HF_CMD) login --token $(HF) --add-to-git-credential
 
 push-hub:
-	# Upload app (includes requirements.txt for Space environment)
-	$(HF_CMD) upload $(SPACE_REPO) ./App --repo-type=space --commit-message="Sync App files"
-	# Upload model artifacts
+	# Upload Gradio app entrypoint as app.py at repo root
+	$(HF_CMD) upload $(SPACE_REPO) ./App/drug_app.py /app.py --repo-type=space --commit-message="Update app.py"
+	# Upload Space runtime requirements
+	$(HF_CMD) upload $(SPACE_REPO) ./App/requirements.txt /requirements.txt --repo-type=space --commit-message="Update requirements"
+	# Optional README for Space
+	$(HF_CMD) upload $(SPACE_REPO) ./App/README /README.md --repo-type=space --commit-message="Update README"
+	# Upload model artifacts into /Model
 	$(HF_CMD) upload $(SPACE_REPO) ./Model /Model --repo-type=space --commit-message="Sync Model"
-	# Upload results/metrics
-	$(HF_CMD) upload $(SPACE_REPO) ./Results /Metrics --repo-type=space --commit-message="Sync Metrics"
+	# Upload results/metrics into /Results
+	$(HF_CMD) upload $(SPACE_REPO) ./Results /Results --repo-type=space --commit-message="Sync Results"
 
 deploy: hf-login push-hub
