@@ -1,0 +1,10 @@
+# Ignore Hugging Face token file
+App/TOKEN_hf
+
+# Environment files
+.env
+*.env
+
+# Python cache
+__pycache__/
+*.pyc
