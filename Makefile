@@ -21,12 +21,18 @@ USER_NAME ?=
 USER_EMAIL ?= 
 
 update-branch:
-	@if [ -z "$(USER_NAME)" ]; then echo "Error: USER_NAME is required. Usage: make update-branch USER_NAME='Your Name' USER_EMAIL='you@example.com'"; exit 1; fi
-	@if [ -z "$(USER_EMAIL)" ]; then echo "Error: USER_EMAIL is required. Usage: make update-branch USER_NAME='Your Name' USER_EMAIL='you@example.com'"; exit 1; fi
-	git config --global user.name "$(USER_NAME)"
-	git config --global user.email "$(USER_EMAIL)"
-	git commit -am "Update with new results"
-	git push --force origin HEAD:update
+	@USER_NAME="$${USER_NAME:-$${GITHUB_ACTOR:-github-actions[bot]}}"; \
+	USER_EMAIL="$${USER_EMAIL:-$${GITHUB_ACTOR:-github-actions}@users.noreply.github.com}"; \
+	if [ -z "$$USER_NAME" ] || [ -z "$$USER_EMAIL" ]; then \
+	  echo "Error: USER_NAME and USER_EMAIL must be set (or GITHUB_ACTOR must be available)"; exit 1; \
+	fi; \
+	git config user.name "$$USER_NAME"; \
+	git config user.email "$$USER_EMAIL"; \
+	if git diff --quiet --exit-code; then \
+	  echo "No changes to commit"; \
+	else \
+	  git add -A && git commit -m "Update with new results" && git push --force origin HEAD:update; \
+	fi
 
 HF_USER ?= wissal098
 HF_SPACE ?= Drug_Classification
