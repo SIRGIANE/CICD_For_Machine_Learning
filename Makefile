@@ -30,6 +30,11 @@ update-branch:
 		git push origin HEAD:update || git push --set-upstream origin update; \
 	fi
 
+HF_USER ?= wissal098
+HF_SPACE ?= Drug_Classification
+SPACE_REPO := $(HF_USER)/$(HF_SPACE)
+HF_CMD ?= python -m huggingface_hub
+
 # Robust Hugging Face login: handle missing 'update' branch
 hf-login:
 	git fetch origin
@@ -39,19 +44,15 @@ hf-login:
 	else \
 		echo "Remote update branch missing - using current branch"; \
 	fi
-	pip install -U "huggingface_hub[cli]"
-	huggingface-cli login --token $(HF) --add-to-git-credential
-
-HF_USER ?= wissal098
-HF_SPACE ?= Drug_Classification
-SPACE_REPO := $(HF_USER)/$(HF_SPACE)
+	pip install --upgrade huggingface_hub
+	$(HF_CMD) login --token $(HF) --add-to-git-credential
 
 push-hub:
 	# Upload app (includes requirements.txt for Space environment)
-	huggingface-cli upload $(SPACE_REPO) ./App --repo-type=space --commit-message="Sync App files"
+	$(HF_CMD) upload $(SPACE_REPO) ./App --repo-type=space --commit-message="Sync App files"
 	# Upload model artifacts
-	huggingface-cli upload $(SPACE_REPO) ./Model /Model --repo-type=space --commit-message="Sync Model"
+	$(HF_CMD) upload $(SPACE_REPO) ./Model /Model --repo-type=space --commit-message="Sync Model"
 	# Upload results/metrics
-	huggingface-cli upload $(SPACE_REPO) ./Results /Metrics --repo-type=space --commit-message="Sync Metrics"
+	$(HF_CMD) upload $(SPACE_REPO) ./Results /Metrics --repo-type=space --commit-message="Sync Metrics"
 
 deploy: hf-login push-hub
