@@ -19,6 +19,8 @@ jobs:
           cache: 'pip'
       - name: Install dependencies
         run: make install
+      - name: Install Hugging Face CLI
+        run: pip install --upgrade "huggingface_hub[cli]"
       - name: Deployment To Hugging Face
         env:
           HF: ${{ secrets.HF }}
