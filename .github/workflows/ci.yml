@@ -1,5 +1,4 @@
 name: Continuous Integration
-
 on:
   push:
     branches: [ "main" ]
@@ -7,52 +6,25 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
   
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
-  actions: read
-  checks: write
-
+permissions: write-all
 jobs:
-  cml-run:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      
-      - name: Setup CML
-        uses: iterative/setup-cml@v2
-      
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-          cache: 'pip'
-      
-      - name: Configure Git
-        run: |
-          git config --global user.name "${{ secrets.USER_NAME }}"
-          git config --global user.email "${{ secrets.USER_EMAIL }}"
-      
-      - name: Install dependencies
+      - uses: actions/checkout@v3
+      - uses: iterative/setup-cml@v2
+      - name: Install Packages
         run: make install
-      
-      - name: Code formatting check
+      - name: Format
         run: make format
-      
-      - name: Train model
+      - name: Train
         run: make train
-      
-      - name: Evaluate model and generate report
+      - name: Evaluation
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: make eval
-        
       - name: Update Branch
         env:
-          USER_NAME: ${{ secrets.USER_NAME }}
-          USER_EMAIL: ${{ secrets.USER_EMAIL }}
-        run: make update-branch
+          NAME: ${{ secrets.USER_NAME }}
+          EMAIL: ${{ secrets.USER_EMAIL }}
+        run: make update-branch USER_NAME=$NAME USER_EMAIL=$EMAIL
