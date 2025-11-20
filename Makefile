@@ -2,8 +2,8 @@ install:
 	pip install --upgrade pip &&\
 		pip install -r requirements.txt
 
-format:
-	black *.py
+format: install
+	black --check --diff *.py || black *.py
 
 train:
 	python train.py
